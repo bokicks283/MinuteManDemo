@@ -1,0 +1,50 @@
+name: printflow
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/apache/Dockerfile
+
+    ports:
+      - "8080:80"
+
+    volumes:
+      - .:/var/www/html
+
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE:-printflow}
+      DB_USERNAME: ${MYSQL_USER:-printflow}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-printflow_dev}
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    
+    # TODO: Remove DEVONLY port exposure here is unnecessary when all containers are running.
+    ports:
+      - "3306:3306"
+
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-printflow}
+      MYSQL_USER: ${MYSQL_USER:-printflow}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-printflow_dev}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev}
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      test: mysqladmin ping -h localhost -u root -p="$${MYSQL_ROOT_PASSWORD}"
+      interval: 30s
+      timeout: 15s
+      retries: 5
+
+volumes:
+  mysql_data: {}
