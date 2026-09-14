@@ -3,11 +3,27 @@
     "description": "A PHP/MySQL customer service request workflow and REST API demo.",
     "type": "project",
     "require": {
-        "php": "^8.4"
+        "php": "^8.4",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-mbstring": "*"
     },
     "autoload": {
         "psr-4": {
             "MmpDemo\\": "src/"
         }
+    },
+    "license": "proprietary",
+    "autoload-dev": {
+        "psr-4": {
+            "MmpDemo\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "lint": "find src public templates tests -name '*.php' -print0 | xargs -0 -n1 php -l"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.0"
     }
 }
