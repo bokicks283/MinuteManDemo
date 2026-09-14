@@ -1,4 +1,4 @@
-name: printflow
+name: mmpdemo
 
 services:
   app:
@@ -15,9 +15,10 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 3306
-      DB_DATABASE: ${MYSQL_DATABASE:-printflow}
-      DB_USERNAME: ${MYSQL_USER:-printflow}
-      DB_PASSWORD: ${MYSQL_PASSWORD:-printflow_dev}
+      # TODO: Remove password fallbacks. INSECURE.
+      DB_DATABASE: ${MYSQL_DATABASE:-mmpdemo}
+      DB_USERNAME: ${MYSQL_USER:-mmpdemo}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-mmpdemo_dev}
 
     depends_on:
       db:
@@ -31,17 +32,18 @@ services:
       - "3306:3306"
 
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-printflow}
-      MYSQL_USER: ${MYSQL_USER:-printflow}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-printflow_dev}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-mmpdemo}
+      MYSQL_USER: ${MYSQL_USER:-mmpdemo}
+      # TODO: Remove password fallbacks. INSECURE.
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-mmpdemo_dev}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-mmpdemo_root}
 
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d:ro
 
     healthcheck:
-      test: mysqladmin ping -h localhost -u root -p="$${MYSQL_ROOT_PASSWORD}"
+      test: mysqladmin ping -h localhost -u root -p="$${MYSQL_ROOT_PASSWORD}""
       interval: 30s
       timeout: 15s
       retries: 5

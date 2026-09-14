@@ -1,0 +1,13 @@
+{
+    "name": "bokicks283/mmpdemo",
+    "description": "A PHP/MySQL customer service request workflow and REST API demo.",
+    "type": "project",
+    "require": {
+        "php": "^8.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "mmpdemo\\": "src/"
+        }
+    }
+}
