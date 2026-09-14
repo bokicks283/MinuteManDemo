@@ -1,0 +1,26 @@
+FROM php:8.4-apache AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends libonig-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring \
+    && apt-get purge -y libonig-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+RUN printf 'display_errors=Off\nlog_errors=On\n' > /usr/local/etc/php/conf.d/errors.ini
+WORKDIR /var/www/html
+
+FROM runtime AS dependencies
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN apt-get update && apt-get install -y --no-install-recommends unzip \
+    && rm -rf /var/lib/apt/lists/*
+COPY composer.json composer.lock ./
+COPY src/ src/
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
+    && composer check-platform-reqs --no-dev
+
+FROM runtime AS production
+COPY --from=dependencies /var/www/html/vendor/ vendor/
+COPY public/ public/
+COPY src/ src/
+COPY templates/ templates/
+CMD ["apache2-foreground"]

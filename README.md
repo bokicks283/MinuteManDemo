@@ -29,7 +29,7 @@ Desktop client ─────┘                   ↓
 
 Only `public/` is the document root. Apache's `FallbackResource` supplies clean URLs without requiring mod_rewrite. Templates, source, database scripts, credentials, and Composer files live outside that root.
 
-## Run locally
+## Development
 
 Requires Docker Engine with Compose or Docker Desktop configured for Linux containers. Native PHP, Composer, Apache, and MySQL are not required.
 
@@ -198,6 +198,19 @@ PHPUnit 12 tests the full 6×6 status transition matrix (including all terminal-
 
 Before public deployment: add staff authentication/authorization, API credentials and scopes for desktop clients, rate limiting, HTTPS, secrets management, backups/restore procedures, pagination, structured logging/monitoring, and a deployment pipeline. Add a CSRF strategy when cookie-based authentication is introduced. Define audit actor identity and retention policy alongside authentication.
 
-The supplied Compose file is a local development/demo setup: it bind-mounts source and installs development dependencies at startup. For deployment, build an immutable application image with `composer install --no-dev --optimize-autoloader` during the build, copy application files into it, remove the source bind mount, and start Apache directly. Use protected configuration and least-privilege credentials rather than example passwords; keep MySQL internal. Protect Docker logs, which may contain diagnostic details.
+### Production-style local/server run
+
+After cloning, create `.env` from `.env.example` and set MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, and MYSQL_ROOT_PASSWORD. Use distinct strong passwords.
+
+```bash
+docker compose -f compose.prod.yaml up -d --build
+docker compose -f compose.prod.yaml ps
+```
+
+Development continues to use `docker compose up -d --build`. Stop the development app with `docker compose stop app` before running production on the same host: both use port 8080.
+
+The production configuration builds an immutable PHP/Apache image, installs optimized Composer runtime dependencies at build time, excludes PHPUnit and Composer itself from the final image, and starts Apache directly. It does not source-bind-mount the repository or include .env/.git. Only the database initialization SQL is mounted read-only into MySQL. The separate `requestrelay-prod` Compose project has its own named database volume; initialization still runs only on a fresh volume.
+
+HTTP binds to `127.0.0.1:8080` for a future reverse proxy on the Windows host. HTTPS must be terminated by that separately configured proxy; a proxy inside another container needs an explicitly configured private connection rather than its own localhost. MySQL has no published host port. Use protected configuration and least-privilege credentials, and protect diagnostic logs.
 
 On a separate Windows host, use Docker Desktop/Engine capable of **Linux containers**, not Windows container mode. The application still runs under Linux/Apache/PHP; it does not require IIS or Windows PHP. Check port 8080/firewall access and filesystem mounts, configure TLS at a reverse proxy, and provision/migrate the database deliberately. Named volumes do not transfer automatically between hosts: back up and restore MySQL. Do not copy the local .env or fictional verification data as production configuration.
