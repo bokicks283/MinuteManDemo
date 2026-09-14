@@ -12,13 +12,14 @@ services:
     volumes:
       - .:/var/www/html
 
+    command: sh -c "composer install --no-interaction --prefer-dist && exec apache2-foreground"
+
     environment:
       DB_HOST: db
       DB_PORT: 3306
-      # TODO: Remove password fallbacks. INSECURE.
       DB_DATABASE: ${MYSQL_DATABASE:-mmpdemo}
       DB_USERNAME: ${MYSQL_USER:-mmpdemo}
-      DB_PASSWORD: ${MYSQL_PASSWORD:-mmpdemo_dev}
+      DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
 
     depends_on:
       db:
@@ -26,17 +27,12 @@ services:
 
   db:
     image: mysql:8.4
-    
-    # TODO: Remove DEVONLY port exposure here is unnecessary when all containers are running.
-    ports:
-      - "3306:3306"
 
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-mmpdemo}
       MYSQL_USER: ${MYSQL_USER:-mmpdemo}
-      # TODO: Remove password fallbacks. INSECURE.
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-mmpdemo_dev}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-mmpdemo_root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
 
     volumes:
       - mysql_data:/var/lib/mysql
