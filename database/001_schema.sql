@@ -15,7 +15,8 @@ CREATE TABLE service_requests (
 CREATE TABLE request_status_history (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   request_id BIGINT UNSIGNED NOT NULL,
-  pervious_status VARCHAR(30) NULL,
+  old_status VARCHAR(30) NULL,
+  new_status VARCHAR(30) NOT NULL,
   changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_status_history_request
